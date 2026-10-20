@@ -1,0 +1,22 @@
+{
+  "name": "proctor-app",
+  "version": "1.0.0",
+  "description": "Simple desktop proctoring test app",
+  "main": "electron/main.js",
+  "scripts": {
+    "server": "node --watch server/index.js",
+    "client": "npm --prefix client run dev",
+    "start": "electron .",
+    "postinstall": "npm --prefix client install"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "express": "^5.3.0"
+  },
+  "devDependencies": {
+    "electron": "^44.9.2"
+  }
+}
