@@ -10,10 +10,11 @@ export default function TestScreen() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [attempt, setAttempt] = useState(0)
+  const [result, setResult] = useState(null)
   const startedFor = useRef(-1)
   const saved = useRef(new Set()) // question ids the server already has, so retries don't resend them
 
-  useCaptures(sessionId)
+  useCaptures(result ? null : sessionId) // stop capturing once the test is submitted
 
   // Start a session and load questions. StrictMode runs effects twice in dev, so guard per attempt.
   useEffect(() => {
@@ -48,6 +49,21 @@ export default function TestScreen() {
     )
   }
 
+  if (result) {
+    return (
+      <main className="card">
+        <h1>Test submitted</h1>
+        <p className="score">{result.correct} / {questions.length}</p>
+        <p className="muted">
+          You answered {result.attempted} of {questions.length} questions: {result.correct} correct, {result.wrong} wrong.
+        </p>
+        <button type="button" className="primary spaced" onClick={() => window.api.quit()}>
+          Quit
+        </button>
+      </main>
+    )
+  }
+
   if (questions.length === 0) {
     return (
       <main className="card">
@@ -70,8 +86,8 @@ export default function TestScreen() {
         saved.current.add(question.id)
       }
       if (isLast) {
-        await request('/exam/submit', { sessionId })
-        await window.api.quit()
+        const data = await request('/exam/submit', { sessionId })
+        setResult(data.result)
         return
       }
       setIndex(index + 1)
