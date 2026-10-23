@@ -7,8 +7,7 @@
     "server": "node --watch server/index.js",
     "client": "npm --prefix client run dev",
     "start": "electron .",
-    "postinstall": "npm --prefix client install",
-    "test": "node --test server/"
+    "postinstall": "npm --prefix client install"
   },
   "keywords": [],
   "author": "",
