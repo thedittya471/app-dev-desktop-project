@@ -22,6 +22,7 @@ export default function App() {
       <p className="muted">This test is monitored. Before you begin, please note:</p>
       <ul className="rules">
         <li>Your camera takes a photo of you at regular intervals.</li>
+        <li>Your microphone must stay on during the test.</li>
         <li>Your screen is captured at regular intervals.</li>
         <li>The test runs in full screen. Leaving it is recorded.</li>
         <li>The app closes when you submit.</li>

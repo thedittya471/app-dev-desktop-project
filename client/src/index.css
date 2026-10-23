@@ -162,3 +162,9 @@ button.primary {
   background: #000;
   transform: scaleX(-1); /* mirror, like a selfie camera */
 }
+
+.hint {
+  margin-top: 8px;
+  text-align: center;
+  font-size: 0.9rem;
+}
