@@ -1,20 +1,13 @@
 import { useState } from 'react'
 import PermissionsScreen from './PermissionsScreen.jsx'
+import TestScreen from './TestScreen.jsx'
 
 export default function App() {
   const [screen, setScreen] = useState('home') // home | permissions | test
 
   if (screen === 'permissions') return <PermissionsScreen onReady={() => setScreen('test')} />
 
-  // ponytail: placeholder until the test UI (questions, captures, submit) is built
-  if (screen === 'test') {
-    return (
-      <main className="card">
-        <h1>Test</h1>
-        <p className="muted">Questions will appear here.</p>
-      </main>
-    )
-  }
+  if (screen === 'test') return <TestScreen />
 
   return (
     <main className="card">

@@ -35,6 +35,9 @@ ipcMain.handle('enter-fullscreen', () => {
   return false;
 });
 
+// Called after the test is submitted
+ipcMain.handle('quit', () => app.quit());
+
 app.whenReady().then(() => {
   // Grant the page only camera, microphone and full screen
   session.defaultSession.setPermissionRequestHandler((_webContents, permission, callback) => {
