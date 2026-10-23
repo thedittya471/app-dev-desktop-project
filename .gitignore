@@ -5,3 +5,4 @@ snapshots/
 .DS_Store
 *.log
 task.md
+release/

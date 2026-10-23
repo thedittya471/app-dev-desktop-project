@@ -23,7 +23,9 @@ function createWindow() {
     if (testLocked) event.preventDefault();
   });
 
-  win.loadURL('http://localhost:5173');
+  // The .dmg app ships the built React app; `npm start` uses the Vite dev server
+  if (app.isPackaged) win.loadFile(path.join(__dirname, '..', 'client', 'dist', 'index.html'));
+  else win.loadURL('http://localhost:5173');
 }
 
 // macOS shows its own camera prompt; other platforms rely on the page's getUserMedia
