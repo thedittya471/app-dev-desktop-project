@@ -1,22 +1,24 @@
 import { useEffect, useRef, useState } from 'react'
 
+// setting = the macOS System Settings → Privacy & Security section to send the user to
 const DEVICES = {
-  camera: { name: 'Camera', constraints: { video: true } },
-  microphone: { name: 'Microphone', constraints: { audio: true } },
+  camera: { name: 'Camera', setting: 'Camera', constraints: { video: true } },
+  microphone: { name: 'Microphone', setting: 'Microphone', constraints: { audio: true } },
+  screen: { name: 'Screen recording', setting: 'Screen & System Audio Recording' }, // captured by Electron, not getUserMedia
 }
 
-const blockedMessage = (name) =>
-  `${name} access is blocked. Allow it in System Settings → Privacy & Security → ${name}, then restart the app.`
+const blockedMessage = (name, setting) =>
+  `${name} access is blocked. Allow it in System Settings → Privacy & Security → ${setting}, then restart the app.`
 
-function deviceErrorMessage(name, err) {
-  if (err.name === 'NotAllowedError') return blockedMessage(name)
+function deviceErrorMessage({ name, setting }, err) {
+  if (err.name === 'NotAllowedError') return blockedMessage(name, setting)
   if (err.name === 'NotFoundError') return `No ${name.toLowerCase()} was found. Connect one and try again.`
   return `Could not start the ${name.toLowerCase()}. Close other apps using it and try again.`
 }
 
 export default function PermissionsScreen({ onReady }) {
-  const [status, setStatus] = useState({ camera: 'idle', microphone: 'idle' }) // idle | pending | granted | denied
-  const [errors, setErrors] = useState({ camera: '', microphone: '' })
+  const [status, setStatus] = useState({ camera: 'idle', microphone: 'idle', screen: 'idle' }) // idle | pending | granted | denied
+  const [errors, setErrors] = useState({ camera: '', microphone: '', screen: '' })
   const [fullscreen, setFullscreen] = useState(false)
   const videoRef = useRef(null)
   const streamsRef = useRef({})
@@ -39,16 +41,16 @@ export default function PermissionsScreen({ onReady }) {
   }, [status.camera])
 
   async function allow(kind) {
-    const { name, constraints } = DEVICES[kind]
+    const device = DEVICES[kind]
     setStatus((s) => ({ ...s, [kind]: 'pending' }))
     setErrors((e) => ({ ...e, [kind]: '' }))
     try {
-      if (!(await api.requestMediaAccess(kind))) throw new DOMException(blockedMessage(name), 'NotAllowedError')
-      streamsRef.current[kind] = await navigator.mediaDevices.getUserMedia(constraints)
+      if (!(await api.requestMediaAccess(kind))) throw new DOMException('blocked', 'NotAllowedError')
+      if (device.constraints) streamsRef.current[kind] = await navigator.mediaDevices.getUserMedia(device.constraints)
       setStatus((s) => ({ ...s, [kind]: 'granted' }))
     } catch (err) {
       setStatus((s) => ({ ...s, [kind]: 'denied' }))
-      setErrors((e) => ({ ...e, [kind]: deviceErrorMessage(name, err) }))
+      setErrors((e) => ({ ...e, [kind]: deviceErrorMessage(device, err) }))
     }
   }
 
@@ -60,12 +62,12 @@ export default function PermissionsScreen({ onReady }) {
     return (
       <main className="card">
         <h1>Open the desktop app</h1>
-        <p className="muted">Camera, microphone and full screen checks only work in the app. Run <code>npm start</code>.</p>
+        <p className="muted">Permission checks only work in the app. Run <code>npm start</code>.</p>
       </main>
     )
   }
 
-  const ready = status.camera === 'granted' && status.microphone === 'granted' && fullscreen
+  const ready = Object.values(status).every((s) => s === 'granted') && fullscreen
 
   function deviceAction(kind) {
     const { name } = DEVICES[kind]
@@ -84,7 +86,7 @@ export default function PermissionsScreen({ onReady }) {
   return (
     <main className="card">
       <h1>Before you start</h1>
-      <p className="muted">All three are required for the whole test.</p>
+      <p className="muted">All of these are required for the whole test.</p>
 
       <ul className="permissions">
         <li className="permission">
@@ -110,6 +112,15 @@ export default function PermissionsScreen({ onReady }) {
 
         <li className="permission">
           <div className="permission-text">
+            <h2>Screen recording</h2>
+            <p className="muted">Used to take screenshots of your screen during the test.</p>
+            {errors.screen && <p className="error" role="alert">{errors.screen}</p>}
+          </div>
+          {deviceAction('screen')}
+        </li>
+
+        <li className="permission">
+          <div className="permission-text">
             <h2>Full screen</h2>
             <p className="muted">The test runs in full screen. Leaving it is recorded.</p>
           </div>
@@ -124,7 +135,7 @@ export default function PermissionsScreen({ onReady }) {
       <button type="button" className="primary" onClick={onReady} disabled={!ready}>
         Go to test
       </button>
-      {!ready && <p className="muted hint">Allow the camera and microphone, and enter full screen to continue.</p>}
+      {!ready && <p className="muted hint">Allow everything above and enter full screen to continue.</p>}
     </main>
   )
 }

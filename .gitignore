@@ -1,7 +1,7 @@
 node_modules/
 client/dist/
 server/data/sessions.json
-server/data/captures/
+snapshots/
 .DS_Store
 *.log
 task.md

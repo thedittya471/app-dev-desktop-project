@@ -1,22 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
-
-async function request(path, body) {
-  let res
-  try {
-    res = await fetch(API_URL + path, body && {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    })
-  } catch {
-    throw new Error("Can't reach the exam server. Make sure it's running, then try again.")
-  }
-  const data = await res.json().catch(() => ({}))
-  if (!res.ok) throw new Error(data.message || `Request failed (${res.status})`)
-  return data
-}
+import { request } from './api.js'
+import useCaptures from './useCaptures.js'
 
 export default function TestScreen() {
   const [sessionId, setSessionId] = useState(null)
@@ -28,6 +12,8 @@ export default function TestScreen() {
   const [attempt, setAttempt] = useState(0)
   const startedFor = useRef(-1)
   const saved = useRef(new Set()) // question ids the server already has, so retries don't resend them
+
+  useCaptures(sessionId)
 
   // Start a session and load questions. StrictMode runs effects twice in dev, so guard per attempt.
   useEffect(() => {
