@@ -1,5 +1,7 @@
 node_modules/
 client/dist/
-server/data/
+server/data/sessions.json
+server/data/captures/
 .DS_Store
 *.log
+task.md
