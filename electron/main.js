@@ -2,6 +2,7 @@ const { app, BrowserWindow, desktopCapturer, ipcMain, screen, session, systemPre
 const path = require('path');
 
 let win;
+let testLocked = false; // true from "Go to test" until the Quit button
 
 function createWindow() {
   win = new BrowserWindow({
@@ -17,13 +18,17 @@ function createWindow() {
   // Tell React whenever full screen changes (including the user leaving it)
   win.on('enter-full-screen', () => win.webContents.send('fullscreen-changed', true));
   win.on('leave-full-screen', () => win.webContents.send('fullscreen-changed', false));
+  // Cmd+W / the close button
+  win.on('close', (event) => {
+    if (testLocked) event.preventDefault();
+  });
 
   win.loadURL('http://localhost:5173');
 }
 
-// macOS shows its own camera/microphone prompt; other platforms rely on the page's getUserMedia
+// macOS shows its own camera prompt; other platforms rely on the page's getUserMedia
 ipcMain.handle('request-media-access', async (_event, kind) => {
-  if (kind !== 'camera' && kind !== 'microphone' && kind !== 'screen') return false;
+  if (kind !== 'camera' && kind !== 'screen') return false;
   if (process.platform !== 'darwin') return true;
   if (kind !== 'screen') return systemPreferences.askForMediaAccess(kind);
 
@@ -55,15 +60,29 @@ ipcMain.handle('enter-fullscreen', () => {
   return false;
 });
 
-// Called after the test is submitted
-ipcMain.handle('quit', () => app.quit());
+// Kiosk mode keeps the window full screen and, on macOS, also blocks Cmd+Tab, Cmd+H and Force Quit.
+// ponytail: a reload (Cmd+R) still restarts the page; remove the app menu if that matters
+ipcMain.handle('lock-test', () => {
+  testLocked = true;
+  win.setKiosk(true);
+});
+
+// The Quit button on the result screen. app.exit, not app.quit: once a Cmd+Q has been
+// blocked, macOS leaves the app mid-quit and a later app.quit() does nothing.
+ipcMain.handle('quit', () => app.exit());
 
 app.whenReady().then(() => {
-  // Grant the page only camera, microphone and full screen
+  // Grant the page only the camera and full screen
   session.defaultSession.setPermissionRequestHandler((_webContents, permission, callback) => {
     callback(permission === 'media' || permission === 'fullscreen');
   });
   createWindow();
+});
+
+// Cmd+Q / Quit in the menu or Dock. Ctrl+C in the terminal is blocked too while locked;
+// a developer stuck in a locked app can run: pkill -9 -f "Electron.app/Contents/MacOS/Electron"
+app.on('before-quit', (event) => {
+  if (testLocked) event.preventDefault();
 });
 
 app.on('window-all-closed', () => app.quit());

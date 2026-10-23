@@ -5,7 +5,12 @@ import TestScreen from './TestScreen.jsx'
 export default function App() {
   const [screen, setScreen] = useState('home') // home | permissions | test
 
-  if (screen === 'permissions') return <PermissionsScreen onReady={() => setScreen('test')} />
+  function startTest() {
+    window.api.lockTest()
+    setScreen('test')
+  }
+
+  if (screen === 'permissions') return <PermissionsScreen onReady={startTest} />
 
   if (screen === 'test') return <TestScreen />
 
@@ -15,10 +20,8 @@ export default function App() {
       <p className="muted">This test is monitored. Before you begin, please note:</p>
       <ul className="rules">
         <li>Your camera takes a photo of you at regular intervals.</li>
-        <li>Your microphone must stay on during the test.</li>
         <li>Your screen is captured at regular intervals.</li>
-        <li>The test runs in full screen. Leaving it is recorded.</li>
-        <li>The app closes when you submit.</li>
+        <li>Once the test starts, the app stays in full screen and you can't switch apps or close it until you submit.</li>
       </ul>
       <button type="button" className="primary" onClick={() => setScreen('permissions')}>
         Take test

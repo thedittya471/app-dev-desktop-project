@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from 'react'
 // setting = the macOS System Settings → Privacy & Security section to send the user to
 const DEVICES = {
   camera: { name: 'Camera', setting: 'Camera', constraints: { video: true } },
-  microphone: { name: 'Microphone', setting: 'Microphone', constraints: { audio: true } },
   screen: { name: 'Screen recording', setting: 'Screen & System Audio Recording' }, // captured by Electron, not getUserMedia
 }
 
@@ -17,8 +16,8 @@ function deviceErrorMessage({ name, setting }, err) {
 }
 
 export default function PermissionsScreen({ onReady }) {
-  const [status, setStatus] = useState({ camera: 'idle', microphone: 'idle', screen: 'idle' }) // idle | pending | granted | denied
-  const [errors, setErrors] = useState({ camera: '', microphone: '', screen: '' })
+  const [status, setStatus] = useState({ camera: 'idle', screen: 'idle' }) // idle | pending | granted | denied
+  const [errors, setErrors] = useState({ camera: '', screen: '' })
   const [fullscreen, setFullscreen] = useState(false)
   const videoRef = useRef(null)
   const streamsRef = useRef({})
@@ -99,15 +98,6 @@ export default function PermissionsScreen({ onReady }) {
           {status.camera === 'granted' && (
             <video ref={videoRef} className="preview" autoPlay muted playsInline aria-label="Camera preview" />
           )}
-        </li>
-
-        <li className="permission">
-          <div className="permission-text">
-            <h2>Microphone</h2>
-            <p className="muted">Must stay on during the test.</p>
-            {errors.microphone && <p className="error" role="alert">{errors.microphone}</p>}
-          </div>
-          {deviceAction('microphone')}
         </li>
 
         <li className="permission">
